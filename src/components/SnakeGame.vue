@@ -43,14 +43,13 @@ const moveSnake = () => {
   }
 
   if (checkCollision(head)) {
-    alert('Game Over!');
     clearInterval(intervalId);
 
-    /**
-     * Restart the game
-     */
-    snake.value = [{ x: 10, y: 10 }];
-    intervalId = setInterval(moveSnake, 100);
+    // /**
+    //  * Restart the game
+    //  */
+    // snake.value = [{ x: 10, y: 10 }];
+    // intervalId = setInterval(moveSnake, 100);
 
     return;
   }
@@ -112,7 +111,13 @@ onBeforeUnmount(() => {
           v-for="col in gridSize"
           :key="col"
           class="cell"
-          :class="{ snake: isSnakeCell(col, row), food: isFoodCell(col, row) }"
+          :class="{
+            snakeDown: isSnakeCell(col, row) && direction === 'down',
+            snakeRight: isSnakeCell(col, row) && direction === 'right',
+            snakeUp: isSnakeCell(col, row) && direction === 'up',
+            snakeLeft: isSnakeCell(col, row) && direction === 'left',
+            food: isFoodCell(col, row),
+          }"
         />
       </div>
     </div>
@@ -130,8 +135,8 @@ onBeforeUnmount(() => {
 .grid {
   display: grid;
   grid-template-rows: repeat(20, 1fr);
-  width: 400px;
-  height: 400px;
+  width: 360px;
+  height: 360px;
 }
 
 .row {
@@ -140,17 +145,29 @@ onBeforeUnmount(() => {
 }
 
 .cell {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   background-color: #ddd;
   border: 1px solid #ccc;
 }
 
-.snake {
+.food {
   background-color: green;
 }
 
-.food {
-  background-color: red;
+.snakeDown {
+  background: url(character.png) 0px 0px;
+}
+
+.snakeRight {
+  background: url(character.png) -16px 0px;
+}
+
+.snakeUp {
+  background: url(character.png) -32px 0px;
+}
+
+.snakeLeft {
+  background: url(character.png) -48px 0px;
 }
 </style>
