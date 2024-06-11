@@ -1,65 +1,46 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
+import throttle from 'lodash.throttle';
 
 const gridSize = 20;
-const snake = ref({ x: 10, y: 10 });
+const peake = ref({ x: 10, y: 10 });
 
 const movement = ref<'down' | 'right' | 'left' | 'up' | 'stopped'>('stopped');
 
-const getClass = (x: number, y: number) => {
-  if (snake.value.x === x && snake.value.y === y) {
-    return movement.value === 'stopped'
-      ? 'snake'
-      : 'snake snake-' + movement.value;
-  } else {
-    return '';
-  }
-};
-
 let clearMovementId: ReturnType<typeof setTimeout> | undefined = undefined;
 
-const moveSnake = () => {
-  switch (movement.value) {
-    case 'up':
-      snake.value.y > 1 && snake.value.y--;
-      break;
-    case 'down':
-      snake.value.y < gridSize && snake.value.y++;
-      break;
-    case 'left':
-      snake.value.x > 1 && snake.value.x--;
-      break;
-    case 'right':
-      snake.value.x < gridSize && snake.value.x++;
-      break;
-  }
-};
+const handleKeyDown = throttle(
+  (event: KeyboardEvent) => {
+    if (clearMovementId) {
+      clearTimeout(clearMovementId);
+      clearMovementId = undefined;
+    }
 
-const handleKeyDown = (event: KeyboardEvent) => {
-  if (clearMovementId) {
-    clearTimeout(clearMovementId);
-    clearMovementId = undefined;
-  }
-
-  switch (event.key) {
-    case 'ArrowUp':
-      movement.value = 'up';
-      break;
-    case 'ArrowDown':
-      movement.value = 'down';
-      break;
-    case 'ArrowLeft':
-      movement.value = 'left';
-      break;
-    case 'ArrowRight':
-      movement.value = 'right';
-      break;
-  }
-
-  moveSnake();
-};
+    switch (event.key) {
+      case 'ArrowUp':
+        movement.value = 'up';
+        peake.value.y > 1 && peake.value.y--;
+        break;
+      case 'ArrowDown':
+        movement.value = 'down';
+        peake.value.y < gridSize && peake.value.y++;
+        break;
+      case 'ArrowLeft':
+        movement.value = 'left';
+        peake.value.x > 1 && peake.value.x--;
+        break;
+      case 'ArrowRight':
+        movement.value = 'right';
+        peake.value.x < gridSize && peake.value.x++;
+        break;
+    }
+  },
+  125,
+  { leading: true, trailing: true }
+);
 
 const handleKeyUp = () => {
+  handleKeyDown.flush();
   clearMovementId && clearTimeout(clearMovementId);
   clearMovementId = setTimeout(() => {
     clearMovementId = undefined;
@@ -82,13 +63,16 @@ onBeforeUnmount(() => {
   <div id="game">
     <div class="grid">
       <div v-for="row in gridSize" :key="row" class="row">
-        <div
-          v-for="col in gridSize"
-          :key="col"
-          class="cell"
-          :class="getClass(col, row)"
-        />
+        <div v-for="col in gridSize" :key="col" class="cell" />
       </div>
+      <div
+        class="peake"
+        :class="movement != 'stopped' ? 'peake-' + movement : ''"
+        :style="{
+          top: (peake.y - 1) * 16 + 'px',
+          left: (peake.x - 1) * 16 + 'px',
+        }"
+      />
     </div>
   </div>
 </template>
@@ -99,13 +83,14 @@ onBeforeUnmount(() => {
   border: 4px solid #555;
   display: flex;
   justify-content: center;
+  position: relative;
 }
 
 .grid {
   display: grid;
   grid-template-rows: repeat(20, 1fr);
-  width: 360px;
-  height: 360px;
+  width: 320px;
+  height: 320px;
 }
 
 .row {
@@ -113,17 +98,20 @@ onBeforeUnmount(() => {
 }
 
 .cell {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   background-color: #ddd;
   border: 1px solid #ccc;
 }
 
-.snake {
+.peake {
+  position: absolute;
   background: url(character.png) 0px 0px;
+  width: 16px;
+  height: 16px;
 }
 
-@keyframes snake-down {
+@keyframes peake-down {
   from {
     background-position: 0px -16px;
   }
@@ -132,7 +120,7 @@ onBeforeUnmount(() => {
   }
 }
 
-@keyframes snake-left {
+@keyframes peake-left {
   from {
     background-position: 0px -32px;
   }
@@ -141,7 +129,7 @@ onBeforeUnmount(() => {
   }
 }
 
-@keyframes snake-up {
+@keyframes peake-up {
   from {
     background-position: 0px -48px;
   }
@@ -150,7 +138,7 @@ onBeforeUnmount(() => {
   }
 }
 
-@keyframes snake-right {
+@keyframes peake-right {
   from {
     background-position: 0px -64px;
   }
@@ -159,19 +147,19 @@ onBeforeUnmount(() => {
   }
 }
 
-.snake-down {
-  animation: snake-down 500ms steps(4) infinite;
+.peake-down {
+  animation: peake-down 500ms steps(4) infinite;
 }
 
-.snake-left {
-  animation: snake-left 500ms steps(4) infinite;
+.peake-left {
+  animation: peake-left 500ms steps(4) infinite;
 }
 
-.snake-up {
-  animation: snake-up 500ms steps(4) infinite;
+.peake-up {
+  animation: peake-up 500ms steps(4) infinite;
 }
 
-.snake-right {
-  animation: snake-right 500ms steps(4) infinite;
+.peake-right {
+  animation: peake-right 500ms steps(4) infinite;
 }
 </style>

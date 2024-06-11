@@ -13,19 +13,21 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "lodash.throttle": "4.1.1",
     "vue": "3.4.27"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "5.0.5",
-    "prettier": "3.3.1",
-    "typescript": "5.4.5",
-    "vite": "5.2.13",
-    "vue-tsc": "2.0.21",
     "@typescript-eslint/eslint-plugin": "5.59.11",
     "@typescript-eslint/parser": "5.59.11",
+    "@vitejs/plugin-vue": "5.0.5",
     "eslint": "8.42.0",
     "eslint-config-prettier": "8.8.0",
     "eslint-plugin-vue": "9.17.0",
-    "vue-eslint-parser": "9.3.1"
+    "prettier": "3.3.1",
+    "typescript": "5.4.5",
+    "vite": "5.2.13",
+    "vue-eslint-parser": "9.3.1",
+    "vue-tsc": "2.0.21",
+    "@types/lodash.throttle": "4.1.9"
   }
 }
