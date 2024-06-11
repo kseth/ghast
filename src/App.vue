@@ -1,9 +1,15 @@
 <script setup lang="ts">
-import SnakeGame from './components/SnakeGame.vue';
+import GameController from './components/GameController.vue';
 </script>
 
 <template>
-  <SnakeGame />
+  <span class="title">Ghast</span>
+  <GameController />
 </template>
 
-<style scoped></style>
+<style scoped>
+  .title {
+    font-size: 16px;
+    line-height: 24px;
+  }
+</style>
