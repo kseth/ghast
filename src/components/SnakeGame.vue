@@ -2,104 +2,79 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 
 const gridSize = 20;
-const snake = ref([{ x: 10, y: 10 }]);
-const food = ref({
-  x: Math.floor(Math.random() * gridSize),
-  y: Math.floor(Math.random() * gridSize),
-});
-const direction = ref('right');
+const snake = ref({ x: 10, y: 10 });
 
-const generateFood = () => {
-  food.value = {
-    x: Math.floor(Math.random() * gridSize),
-    y: Math.floor(Math.random() * gridSize),
-  };
+const movement = ref<'down' | 'right' | 'left' | 'up' | 'stopped'>('stopped');
+
+const getClass = (x: number, y: number) => {
+  if (snake.value.x === x && snake.value.y === y) {
+    return movement.value === 'stopped'
+      ? 'snake'
+      : 'snake snake-' + movement.value;
+  } else {
+    return '';
+  }
 };
 
-const isSnakeCell = (x: number, y: number) => {
-  return snake.value.some((part) => part.x === x && part.y === y);
-};
-
-const isFoodCell = (x: number, y: number) => {
-  return food.value.x === x && food.value.y === y;
-};
+let clearMovementId: ReturnType<typeof setTimeout> | undefined = undefined;
 
 const moveSnake = () => {
-  const head = { ...snake.value[0] };
-
-  switch (direction.value) {
+  switch (movement.value) {
     case 'up':
-      head.y--;
+      snake.value.y > 1 && snake.value.y--;
       break;
     case 'down':
-      head.y++;
+      snake.value.y < gridSize && snake.value.y++;
       break;
     case 'left':
-      head.x--;
+      snake.value.x > 1 && snake.value.x--;
       break;
     case 'right':
-      head.x++;
+      snake.value.x < gridSize && snake.value.x++;
       break;
   }
-
-  if (checkCollision(head)) {
-    clearInterval(intervalId);
-
-    // /**
-    //  * Restart the game
-    //  */
-    // snake.value = [{ x: 10, y: 10 }];
-    // intervalId = setInterval(moveSnake, 100);
-
-    return;
-  }
-
-  snake.value.unshift(head);
-
-  if (head.x === food.value.x && head.y === food.value.y) {
-    generateFood();
-  } else {
-    snake.value.pop();
-  }
-};
-
-const checkCollision = (head: { x: number; y: number }) => {
-  return (
-    head.x < 1 ||
-    head.x > gridSize ||
-    head.y < 1 ||
-    head.y > gridSize ||
-    isSnakeCell(head.x, head.y)
-  );
 };
 
 const handleKeyDown = (event: KeyboardEvent) => {
+  if (clearMovementId) {
+    clearTimeout(clearMovementId);
+    clearMovementId = undefined;
+  }
+
   switch (event.key) {
     case 'ArrowUp':
-      if (direction.value !== 'down') direction.value = 'up';
+      movement.value = 'up';
       break;
     case 'ArrowDown':
-      if (direction.value !== 'up') direction.value = 'down';
+      movement.value = 'down';
       break;
     case 'ArrowLeft':
-      if (direction.value !== 'right') direction.value = 'left';
+      movement.value = 'left';
       break;
     case 'ArrowRight':
-      if (direction.value !== 'left') direction.value = 'right';
+      movement.value = 'right';
       break;
   }
+
+  moveSnake();
 };
 
-let intervalId: ReturnType<typeof setInterval> | undefined;
+const handleKeyUp = () => {
+  clearMovementId && clearTimeout(clearMovementId);
+  clearMovementId = setTimeout(() => {
+    clearMovementId = undefined;
+    movement.value = 'stopped';
+  }, 500);
+};
 
 onMounted(() => {
   document.addEventListener('keydown', handleKeyDown);
-  intervalId = setInterval(moveSnake, 100);
+  document.addEventListener('keyup', handleKeyUp);
 });
 
 onBeforeUnmount(() => {
-  clearInterval(intervalId);
   document.removeEventListener('keydown', handleKeyDown);
+  document.removeEventListener('keyup', handleKeyUp);
 });
 </script>
 
@@ -111,13 +86,7 @@ onBeforeUnmount(() => {
           v-for="col in gridSize"
           :key="col"
           class="cell"
-          :class="{
-            snakeDown: isSnakeCell(col, row) && direction === 'down',
-            snakeRight: isSnakeCell(col, row) && direction === 'right',
-            snakeUp: isSnakeCell(col, row) && direction === 'up',
-            snakeLeft: isSnakeCell(col, row) && direction === 'left',
-            food: isFoodCell(col, row),
-          }"
+          :class="getClass(col, row)"
         />
       </div>
     </div>
@@ -140,7 +109,6 @@ onBeforeUnmount(() => {
 }
 
 .row {
-  /* Key addition for row layout: */
   display: flex;
 }
 
@@ -151,23 +119,59 @@ onBeforeUnmount(() => {
   border: 1px solid #ccc;
 }
 
-.food {
-  background-color: green;
-}
-
-.snakeDown {
+.snake {
   background: url(character.png) 0px 0px;
 }
 
-.snakeRight {
-  background: url(character.png) -16px 0px;
+@keyframes snake-down {
+  from {
+    background-position: 0px -16px;
+  }
+  to {
+    background-position: -64px -16px;
+  }
 }
 
-.snakeUp {
-  background: url(character.png) -32px 0px;
+@keyframes snake-left {
+  from {
+    background-position: 0px -32px;
+  }
+  to {
+    background-position: -64px -32px;
+  }
 }
 
-.snakeLeft {
-  background: url(character.png) -48px 0px;
+@keyframes snake-up {
+  from {
+    background-position: 0px -48px;
+  }
+  to {
+    background-position: -64px -48px;
+  }
+}
+
+@keyframes snake-right {
+  from {
+    background-position: 0px -64px;
+  }
+  to {
+    background-position: -64px -64px;
+  }
+}
+
+.snake-down {
+  animation: snake-down 500ms steps(4) infinite;
+}
+
+.snake-left {
+  animation: snake-left 500ms steps(4) infinite;
+}
+
+.snake-up {
+  animation: snake-up 500ms steps(4) infinite;
+}
+
+.snake-right {
+  animation: snake-right 500ms steps(4) infinite;
 }
 </style>
